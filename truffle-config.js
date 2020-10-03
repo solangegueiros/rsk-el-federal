@@ -51,7 +51,7 @@ module.exports = {
       host: "127.0.0.1",
       port: 4444,
       network_id: "*"
-    },    
+    },
     testnet: {
       provider: () => new HDWalletProvider(mnemonic, 'https://public-node.testnet.rsk.co', 0, 10, true, "m/44'/37310'/0'/0/"),
       network_id: 31,
@@ -72,7 +72,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.5.2",
+      version: "0.5.4",
     }
   }
 }

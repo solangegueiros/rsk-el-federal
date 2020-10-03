@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
-import Container from 'react-bootstrap/Container';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+import { Button, Card, Col, Form, Container, Row } from "react-bootstrap";
+// import Container from 'react-bootstrap/Container';
+// import Button from 'react-bootstrap/Button';
+// import Form from 'react-bootstrap/Form';
+// import Row from 'react-bootstrap/Row';
+// import Col from 'react-bootstrap/Col';
 import './App.css';
 import ElFederal from "./contracts/ElFederal.json";
 import TokenEFD from "./contracts/TokenEFD.json";
@@ -15,9 +16,10 @@ function App() {
   const [elFederal, setElFederal] = useState(null);
   const [token, setToken] = useState(null);  
   const [name, setName] = useState('');
-  const [minApproval, setMinApproval] = useState('');  
+  const [required, setRequired] = useState('');  
 
-  const [inputApproveValue, setInputApproveValue] = useState('', 0);
+  const [inputApprove, setInputApprove] = useState('', 0);
+  const [inputApproveValue, setInputApproveValue] = useState(0);
   const [inputApproveAddress, setInputApproveAddress] = useState();  
   const [inputRevokeAddress, setInputRevokeAddress] = useState();
   const [approveValue, setApproveValue] = useState('', 0);
@@ -33,7 +35,8 @@ function App() {
  
 
   useEffect(() => {
-    async function loadWeb3() {
+    async function loadWeb3() {      
+      //window.web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8545/'));
       if (window.ethereum) {
         window.web3 = new Web3(window.ethereum);
         await window.ethereum.enable();
@@ -61,15 +64,15 @@ function App() {
         console.log ('networkId: ', networkId);
 
         // Check if ElFederal has been published on that network
-        var networkData = ElFederal.networks[networkId];
-        console.log ('ElFederal address: ', networkData.address);
+        var networkData = ElFederal.networks[networkId];        
         if (networkData) {
+          console.log ('ElFederal address: ', networkData.address);
           var contract = new web3.eth.Contract(
             ElFederal.abi,
             networkData.address,
           );
           setElFederal(contract);
-          setMinApproval(await contract.methods.minApproval().call());
+          setRequired(await contract.methods.required().call());
 
           var tokenAddress = await contract.methods.tokenEFD().call();
           console.log ('TokenEFD address: ', tokenAddress);
@@ -103,7 +106,7 @@ function App() {
         //setData(inputValue);
         console.log ('transaction receipt: ', receipt);
         setInputApproveAddress('');
-        setInputApproveValue('');
+        setInputApproveValue(0);
         elFederal.methods.getApprove(inputApproveAddress).call()
           .then( function(res) {
             console.log ('approvedValue: ', res[0]);
@@ -145,6 +148,20 @@ function App() {
       });
   };
 
+  const getWhitelistAddress = e => {
+    e.preventDefault();
+
+    console.log ('inputAddress: ', inputAddress);
+    setAddress(inputAddress);
+    token.methods
+      .isWhitelisted(inputAddress).call()
+      .then( function(res) {
+        console.log ('res: ', res);
+        setIsWhitelisted(res.toString());
+        setInputAddress('');
+      });
+  };
+
   const handleAddWhitelist = e => {
     e.preventDefault();
 
@@ -176,20 +193,7 @@ function App() {
         setInputRemoveWhitelist('');
       });    
   };
-
-  const getWhitelistAddress = e => {
-    e.preventDefault();
-
-    console.log ('inputAddress: ', inputAddress);
-    setAddress(inputAddress);
-    token.methods
-      .isWhitelisted(inputAddress).call()
-      .then( function(res) {
-        console.log ('res: ', res);
-        setIsWhitelisted(res.toString());
-        setInputAddress('');
-      });
-  };   
+   
   
   return (
     <Container>
@@ -201,7 +205,7 @@ function App() {
             <Col>
               {account && <p>Account: {account}</p>}
               {elFederal && <p>ElFederal Address: {elFederal._address}</p>}
-              {minApproval && <p>minApproval: {minApproval}</p>}
+              {required && <p>required: {required}</p>}
             </Col>
             <Col>
               <h3>ElFederal Token</h3>
@@ -211,103 +215,145 @@ function App() {
           </Row>
         </div>
 
-        <Form onSubmit={handleApprove}>
-          <Row>
-            <Col>
-              <Form.Group controlId="formApproveAddress">
-                <Form.Label>Address</Form.Label>
-                <Form.Control placeholder="Address"
-                  onChange={e => setInputApproveAddress(e.target.value)}
-                  value={inputApproveAddress}
-                />   
-              </Form.Group>
-            </Col>
-            <Col xs="auto">
-              <Form.Group controlId="formApproveValue">
-                <Form.Label>Value</Form.Label>
-                <Form.Control placeholder="Value"
-                  onChange={e => setInputApproveValue(e.target.value)}
-                  value={inputApproveValue}
+        <Row>
+          <Col className="mb-2" sm="12" md="6">
+            <Card>
+              <Card.Body>
+                <Form onSubmit={handleApprove}>
+                  <Form.Group controlId="formApproveAddress">
+                    <Form.Label>Address</Form.Label>
+                    <Form.Control
+                      placeholder="Address"
+                      onChange={(e) => setInputApproveAddress(e.target.value)}
+                      value={inputApproveAddress}
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="formApproveValue">
+                    <Form.Label>Value</Form.Label>
+                    <Form.Control
+                      placeholder="Value"
+                      onChange={(e) => setInputApproveValue(e.target.value)}
+                      value={inputApproveValue}
+                    />
+                  </Form.Group>
+                  <Button type="submit">Approve send</Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col className="mb-2" sm="12" md="6">
+            <Card>
+              <Card.Body>
+                <Form onSubmit={handleRevoke}>
+                  <Form.Group controlId="formRevokeAddress">
+                    <Form.Label>Address</Form.Label>
+                    <Form.Control
+                      placeholder="Address"
+                      onChange={(e) => setInputRevokeAddress(e.target.value)}
+                      value={inputRevokeAddress}
+                    />
+                  </Form.Group>
+                  <Button type="submit">Revoke</Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+        
+        <Row>
+          <Col className="mb-2" sm="12" md="6">
+            <Card className="mb-2" sm="12" md="6">
+              <Card.Body>
+              <Col>
+                  <Form onSubmit={getApprove}>
+                    <Form.Group controlId="formGetApproveInfoAddress">
+                    <Form.Label>Approved information for address</Form.Label>
+                      <Form.Control placeholder="Address"
+                        onChange={e => setInputAddress(e.target.value)}
+                        value={inputAddress}
+                      />
+                    </Form.Group>                  
+                    <Button type="submit">Get approve information</Button>
+                  </Form>
+                </Col>
+                <Row>
+                  {approvedInfo && <p>Address: {address} <br/> Value: {approvedInfo[0]} <br/> Approved Count: {approvedInfo[1]}</p>}
+                </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col>
+            <Card >
+              <Card.Body>
+                <Col>
+                  <Form onSubmit={getWhitelistAddress}>
+                    <Form.Group controlId="formGetWhitelistAddress">
+                      <Form.Label>Address</Form.Label>
+                      <Form.Control placeholder="Address"
+                        onChange={e => setInputAddress(e.target.value)}
+                        value={inputAddress}
+                      />
+                    </Form.Group>
+                    <Button type="submit">is whitelisted?</Button>
+                  </Form>
+                </Col>
+                {isWhitelisted && <p>Address: {address} <br/> is whitelisted: {isWhitelisted}</p>}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col className="mb-2" sm="12" md="6">
+            <Card >
+              <Card.Body>
+              <Form onSubmit={handleAddWhitelist}>
+                <Form.Label>Address list</Form.Label>
+                <Form.Control as="textarea" rows="5" placeholder="Addresses list"
+                  onChange={e => setInputAddWhitelist(e.target.value)}
+                  value={inputAddWhitelist}
                 />
-              </Form.Group>
-            </Col>
-            <Button type="submit">Approve send</Button>
-          </Row>
-          
-        </Form>
-        
-        <Form onSubmit={handleRevoke}>
-          <Row>
-            <Col>
-              <Form.Label>Address</Form.Label>
-              <Form.Control placeholder="Address"
-                onChange={e => setInputRevokeAddress(e.target.value)}
-                value={inputRevokeAddress}
-              />
-            </Col>
-            <Button type="submit">Revoke approve</Button>
-          </Row>
-        </Form>
-          
-        <Form onSubmit={getApprove}>
-          <Row>
-            <Col>
-              <Form.Label>Approved information for address</Form.Label>
-              <Form.Control placeholder="Address"
-                onChange={e => setInputAddress(e.target.value)}
-                value={inputAddress}
-              />
-            </Col>
-            <Button type="submit">Get approve information</Button>
-          </Row>            
-        </Form>
-        {approvedInfo && <p>Address: {address} Value: {approvedInfo[0]} Approved Count: {approvedInfo[1]}</p>}
+                <Form.Text className="text-muted">
+                  one address per line
+                </Form.Text>
+                <Button type="submit">Add to whitelist</Button>
+              </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col className="mb-2" sm="12" md="6">
+            <Card >
+              <Card.Body>
+                <Form onSubmit={handleRemoveWhitelist}>
+                  <Form.Label>Address list</Form.Label>
+                  <Form.Control as="textarea" rows="5" placeholder="Addresses  list"
+                    onChange={e => setInputRemoveWhitelist(e.target.value)}
+                    value={inputRemoveWhitelist}
+                  />
+                  <Form.Text className="text-muted">
+                    one address per line
+                  </Form.Text>
+                  <Button type="submit">Remove from whitelist</Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
-        <Form onSubmit={handleAddWhitelist}>
-          <Row>
-            <Col>
-              <Form.Label>Address list</Form.Label>
-              <Form.Control as="textarea" rows="5" placeholder="Addresses list"
-                onChange={e => setInputAddWhitelist(e.target.value)}
-                value={inputAddWhitelist}
-              />
-              <Form.Text className="text-muted">
-                one address per line
-              </Form.Text>
-            </Col>            
-            <Button type="submit">Add to whitelist</Button>
-          </Row>
-        </Form>
-        
-        <Form onSubmit={handleRemoveWhitelist}>
-          <Row>
-            <Col>
-              <Form.Label>Address list</Form.Label>
-              <Form.Control as="textarea" rows="5" placeholder="Addresses  list"
-                onChange={e => setInputRemoveWhitelist(e.target.value)}
-                value={inputRemoveWhitelist}
-              />
-              <Form.Text className="text-muted">
-                one address per line
-              </Form.Text>
-            </Col>
-            <Button type="submit">Remove from whitelist</Button>
-            </Row>
-        </Form>
-
-        <Form onSubmit={getWhitelistAddress}>
-          <Row>
-            <Col>
-              <Form.Label>Address</Form.Label>
-              <Form.Control placeholder="Address"
-                onChange={e => setInputAddress(e.target.value)}
-                value={inputAddress}
-              />            
-            </Col>
-            <Button type="submit">is whitelisted?</Button>
-          </Row>
-        </Form>
-        {isWhitelisted && <p>Address: {address} is whitelisted: {isWhitelisted}</p>}
+        <Row>
+          <Col className="mb-2" sm="12" md="6">
+            <Card >
+              <Card.Body>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col className="mb-2" sm="12" md="6">
+            <Card >
+              <Card.Body>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
       </div>
     </Container>

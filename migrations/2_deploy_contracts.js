@@ -1,14 +1,13 @@
 const ElFederal = artifacts.require("ElFederal");
 
 module.exports = async (deployer, network, accounts)=> {
-  const Admin1 = accounts[1];
-  const Admin2 = accounts[2];
-  const Admin3 = accounts[3];
-  const Admin4 = accounts[4];
+
+  //const Admins = ["0x097FCc9f904a49B6DbdA52928A0c5e81CF6906E2", "0xef5806cc58CAfe1d96aC31E7943ecdb01D59dA49", "0x05cdcD389B102ee1B7EdfB6eBcF89D9Bb7FE34dc", "0xA93fd284F864A78bF1c89575B5d02B2299A9F1F9"]
+  //await deployer.deploy(ElFederal, Admins, 2, {from: accounts[0]});
   
-  //elFederal = await deployer.deploy(ElFederal, {from: accounts[0]});
-  await deployer.deploy(ElFederal, Admin1, Admin2, Admin3, Admin4, {from: accounts[0]});
+  await deployer.deploy(ElFederal, [], 2, {from: accounts[0]});
   elFederal = await ElFederal.deployed();
   console.log("ElFederal: " + elFederal.address);
   console.log("TokenEFD: " + await elFederal.tokenEFD());
+
 };
