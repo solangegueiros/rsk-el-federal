@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
 import { Button, Card, Col, Form, Container, Row } from "react-bootstrap";
-// import Container from 'react-bootstrap/Container';
-// import Button from 'react-bootstrap/Button';
-// import Form from 'react-bootstrap/Form';
-// import Row from 'react-bootstrap/Row';
-// import Col from 'react-bootstrap/Col';
 import './App.css';
 import ElFederal from "./contracts/ElFederal.json";
 import TokenEFD from "./contracts/TokenEFD.json";
-//import Register from "./contracts/Register.json";
 
 function App() {
   const [account, setAccount] = useState('');
@@ -100,7 +94,7 @@ function App() {
     console.log ('inputApproveAddress: ', inputApproveAddress);
     console.log ('inputApproveValue: ', inputApproveValue);
     setAddress(inputApproveAddress);
-    elFederal.methods.approve(inputApproveAddress, inputApproveValue)
+    elFederal.methods.approve(inputApproveAddress.toLowerCase(), inputApproveValue)
       .send({ from: account })
       .once('receipt', receipt => {
         //setData(inputValue);
@@ -120,7 +114,7 @@ function App() {
 
     console.log ('inputRevokeAddress: ', inputRevokeAddress);
     setAddress(inputRevokeAddress);
-    elFederal.methods.revoke(inputRevokeAddress)
+    elFederal.methods.revoke(inputRevokeAddress.toLowerCase())
       .send({ from: account })
       .once('receipt', receipt => {
         console.log ('transaction receipt: ', receipt);
@@ -139,7 +133,7 @@ function App() {
     console.log ('inputAddress: ', inputAddress);
     setAddress(inputAddress);
     elFederal.methods
-      .getApprove(inputAddress).call()
+      .getApprove(inputAddress.toLowerCase()).call()
       .then( function(res) {
         //console.log ('approvedValue: ', res[0]);
         console.log ('res: ', res);
@@ -154,7 +148,7 @@ function App() {
     console.log ('inputAddress: ', inputAddress);
     setAddress(inputAddress);
     token.methods
-      .isWhitelisted(inputAddress).call()
+      .isWhitelisted(inputAddress.toLowerCase()).call()
       .then( function(res) {
         console.log ('res: ', res);
         setIsWhitelisted(res.toString());
@@ -167,7 +161,7 @@ function App() {
 
     console.log ('inputAddWhitelist: ', inputAddWhitelist);
     //convert in array
-    var addressList = inputAddWhitelist.split('\n');
+    var addressList = inputAddWhitelist.toLowerCase().split('\n');
     console.log ('addressList: ', addressList);
     elFederal.methods
       .addWhitelist(addressList)
@@ -183,7 +177,7 @@ function App() {
 
     console.log ('inputRemoveWhitelist: ', inputRemoveWhitelist);
     //convert in array
-    var addressList = inputRemoveWhitelist.split('\n');
+    var addressList = inputRemoveWhitelist.toLowerCase().split('\n');
     console.log ('addressList: ', addressList);
     elFederal.methods
       .removeWhitelist(addressList)
