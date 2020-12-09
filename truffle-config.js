@@ -45,7 +45,8 @@ module.exports = {
     development: {
       host: "127.0.0.1",
       port: 8545,
-      network_id: "*"
+      network_id: "*",
+      //gas: 8000000,
     },
     regtest: {
       host: "127.0.0.1",
@@ -72,7 +73,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.5.4",
+      version: "0.7.5",
     }
   }
 }

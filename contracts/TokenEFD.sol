@@ -1,37 +1,38 @@
-pragma solidity 0.5.4;
+pragma solidity 0.7.5;
 
-import '@openzeppelin/contracts/token/ERC20/ERC20Pausable.sol';
-import '@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol';
-import '@openzeppelin/contracts/ownership/Ownable.sol';
-import '@openzeppelin/contracts/access/roles/WhitelistedRole.sol';
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Pausable.sol";
+//import "@openzeppelin/contracts/presets/ERC20PresetMinterPauser.sol";
 
-contract TokenEFD is Ownable, ERC20Pausable, ERC20Detailed, WhitelistedRole {
+contract TokenEFD is ERC20, ERC20Pausable, AccessControl {
 
-    constructor (
-        string memory _name, string memory _symbol, uint8 _decimals, uint256 _totalSupply)
-        ERC20Detailed(_name, _symbol, _decimals) public {
-            _mint (msg.sender, _totalSupply);
-    }
+  bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
-    function transfer(address recipient, uint256 amount) public onlyWhitelisted returns (bool) {
-        _transfer(_msgSender(), recipient, amount);
-        return true;
-    }
+  constructor(string memory name_, string memory symbol_, uint8 decimals_, uint256 totalSupply_) 
+    public ERC20(name_, symbol_) {
+      _setupDecimals(decimals_);
+      _mint (msg.sender, totalSupply_);
 
-    function transferFrom(address sender, address recipient, uint256 amount) public onlyWhitelisted returns (bool) {
-    }
+      _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+      _setupRole(PAUSER_ROLE, msg.sender);
+  }
 
-    function addWhitelistAdmin(address account) public onlyOwner {
-        _addWhitelistAdmin(account);
-    }
+  modifier onlyPauserRole() {
+    require(hasRole(PAUSER_ROLE, msg.sender), "must have pauser role to pause");
+    _;
+  }
 
-    function removeWhitelistAdmin (address account) external onlyOwner {
-        _removeWhitelistAdmin(account);
-    }
+  function pause() public onlyPauserRole {
+    _pause();
+  }
 
-    function renounceWhitelistAdmin () public {
-        revert("can not renounce, controlled by owner");
-    }
+  function unpause() public onlyPauserRole {
+    _unpause();
+  }
+
+  function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override(ERC20, ERC20Pausable) {
+    super._beforeTokenTransfer(from, to, amount);
+  }
+  
 }
-
-
