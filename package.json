@@ -1,25 +1,25 @@
 {
-  "name": "rsk-setup-box",
+  "name": "rsk-el-federal",
   "version": "1.0.0",
-  "description": "Truffle box configured  to use Open Zeppelin with RSK Networks",
+  "description": "RSK - El Federal project",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "truffle test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/solangegueiros/rsk-setup-box.git"
+    "url": "git+https://github.com/solangegueiros/rsk-el-federal.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["blockchain", "smart contracts", "ethereum", "rsk", "rsksmart"],
+  "author": "Solange Gueiros <solangegueiros@gmail.com> (https://solange.dev)",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/solangegueiros/rsk-setup-box/issues"
+    "url": "https://github.com/solangegueiros/rsk-el-federal/issues"
   },
-  "homepage": "https://github.com/solangegueiros/rsk-setup-box#readme",
+  "homepage": "https://github.com/solangegueiros/rsk-el-federal#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^3.3.0",
     "@truffle/hdwallet-provider": "^1.2.0",
